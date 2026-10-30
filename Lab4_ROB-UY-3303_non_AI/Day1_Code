@@ -73,21 +73,81 @@ import map_4
 #   - path_tracking_controller(P, X)
 # Keep the same names, inputs and outputs. If these functions call helper
 # functions that you wrote in lab_3.py, copy those helpers too.
-WHEEL_RADIUS_M = None     # wheel radius r (m)
-WHEELBASE_M = None        # distance between the wheels = 2L (m)
+WHEEL_RADIUS_M = 0.035     # wheel radius r (m)
+WHEELBASE_M = 0.20        # distance between the wheels = 2L (m)
 
 
 def get_wheel_velocities(v, w):
-    pass  # TODO: copy from lab_3.py
+    L = WHEELBASE_M / 2.0
+    phi_dot_l = (v - L * w) / WHEEL_RADIUS_M
+    phi_dot_r = (v + L * w) / WHEEL_RADIUS_M
+    return phi_dot_l, phi_dot_r
 
 
 def point_tracking_controller(X_des, X):
-    pass  # TODO: copy from lab_3.py
+    dx = X_des[0] - X[0]
+    dy = X_des[1] - X[1]
+    dist = math.hypot(dx, dy)
+    if dist <= 0.005:
+        w = wrap_angle(X_des[2] - X[2])
+        return get_limited_wheel_velocities(0, w)
+    alpha = wrap_angle(-X[2] + math.atan2(dy, dx))
+    if abs(alpha) > math.pi/2:
+        alpha = wrap_angle(alpha + math.pi)
+        direction = -1
+    else:
+        direction = 1
+    beta = wrap_angle(X_des[2] - X[2] - alpha)
+
+    v = direction * K_RHO * dist
+    w = K_ALPHA * alpha + K_BETA * beta
+    
+    return get_limited_wheel_velocities(v, w)
+
 
 
 def path_tracking_controller(P, X):
-    pass  # TODO: copy from lab_3.py
+    closest = None
+    closest_index = None
+    dist = None
+    
+    O = np.array(X[0:2])
+    for i in range(len(P)-1):
+        #projection onto a line
+        A = np.array(P[i][0:2])
+        B = np.array(P[i + 1][0:2])
+        if np.linalg.norm(B - A) == 0: #CHecks if A=B and avoids div by 0
+            continue
+        t = np.dot((O - A), (B - A)) / (np.linalg.norm(B - A) ** 2)
+        if t > 1:
+            t = 1
+        elif t < 0:
+            t = 0
+        p = A + t * (B - A)
+        i_dist = np.linalg.norm(O - p)
+        if dist is None or i_dist <= dist:
+            dist = i_dist
+            closest = p
+            closest_index = i
 
+    tracked = closest
+    i = closest_index
+    dist = LOOKAHEAD_DIST
+    
+    while True:
+        if i >= len(P) - 1:
+            return point_tracking_controller(P[-1], X)
+
+        B = np.array(P[i + 1][0:2])
+        segment_left = np.linalg.norm(B - tracked)
+
+        if dist <= segment_left:
+            tracked = tracked + (dist / segment_left) * (B - tracked)
+            return point_tracking_controller([tracked[0], tracked[1], P[i + 1][2]], X)
+
+        dist = dist - segment_left
+        tracked = B
+        i = i + 1
 
 # =====================================================================
 # PROVIDED - ROBOT SIMULATOR (same as Lab 3, do not change)
@@ -316,10 +376,10 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
     i_to = X_to[0]
     j_to = X_to[1]
     
-    if cost_mode == "distance":
-        cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
-    elif cost_mode == "time":
-        cost = d / (traversability(X_to)* ROBOT_SPEED_M_S)
+
+    cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
+    if cost_mode == "time":
+        cost = cost / (traversability(X_to)* ROBOT_SPEED_M_S)
     return cost
     pass  # TODO: replace this with your implementation
 
@@ -356,10 +416,9 @@ def get_heuristic(X, X_d, cost_mode="distance"):
     i_d = X_d[0]
     j_d = X_d[1]
     
-    if cost_mode == "distance":
-        cost = CELL_SIZE_M * math.sqrt( (i_d - i_X) ** 2 + (j_d - j_X) ** 2 )
-    elif cost_mode == "time":
-        pass
+    cost = CELL_SIZE_M * math.sqrt( (i_d - i_X) ** 2 + (j_d - j_X) ** 2 )
+    if cost_mode == "time":
+        cost = cost / ROBOT_SPEED_M_S
     return cost
     pass  # TODO: replace this with your implementation
 
@@ -445,7 +504,7 @@ def get_neighbors(n, X_d, best_g, cost_mode="distance"):
 # Hint: compare both indices, or compare the lists with ==.
 # =====================================================================
 def is_goal(n, X_d):
-    if n[0] == X_d[0] and n[1] == X_d[1]:
+    if n.X[0] == X_d[0] and n.X[1] == X_d[1]:
         return True
     else:
         return False
@@ -511,12 +570,11 @@ class Fringe:
 def build_path(n):
     reverse_P = []
     P = []
-    node = n
-    while node.parent is not None:
-        reverse_P.append(node.X)
-        node = node.parent
-    while reverse_P != []:
-        P.append(reverse_P.pop())
+    while n is not None:
+        reverse_P.append(n.X)
+        n = n.parent
+        #print(reverse_P)
+    P=reverse_P[::-1]
         
     return P
     pass  # TODO: replace this with your implementation
