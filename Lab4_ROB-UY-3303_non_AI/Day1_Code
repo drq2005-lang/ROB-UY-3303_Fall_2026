@@ -272,11 +272,11 @@ def path_time_s(P):
 # =====================================================================
 class Node:
     def __init__(self, X, parent, g_value, h_value):
-    	self.X = X
-    	self.parent = parent
-    	self.g_value = g_value
-    	self.h_value = h_value
-    	self.f_value = self.g_value + self.h_value
+        self.X = X
+        self.parent = parent
+        self.g_value = g_value
+        self.h_value = h_value
+        self.f_value = self.g_value + self.h_value
         pass  # TODO: replace this with your implementation (5 lines)
 
 
@@ -317,9 +317,9 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
     j_to = X_to[1]
     
     if cost_mode == "distance":
-    	cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
+        cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
     elif cost_mode == "time":
-    	pass
+        pass
     return cost
     pass  # TODO: replace this with your implementation
 
@@ -352,14 +352,14 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
 # =====================================================================
 def get_heuristic(X, X_d, cost_mode="distance"):
     i_X = X[0]
-	j_X = X[1]
-	i_d = X_d[0]
-	j_d = X_d[1]
+    j_X = X[1]
+    i_d = X_d[0]
+    j_d = X_d[1]
     
     if cost_mode == "distance":
-    	cost = CELL_SIZE_M * math.sqrt( (i_X - i_X) ** 2 + (j_X - j_X) ** 2 )
+        cost = CELL_SIZE_M * math.sqrt( (i_d - i_X) ** 2 + (j_d - j_X) ** 2 )
     elif cost_mode == "time":
-    	pass
+        pass
     return cost
     pass  # TODO: replace this with your implementation
 
@@ -411,26 +411,26 @@ def get_neighbors(n, X_d, best_g, cost_mode="distance"):
 
     children = []
 
-    a = [X[0] + 1, X[1]]
-    b = [X[0] - 1, X[1]]
-    c = [X[0], X[1] + 1]
-    d = [X[0], X[1] - 1]
+    a = [X[0] + 1,X[1]]
+    b = [X[0] - 1,X[1]]
+    c = [X[0],X[1] + 1]
+    d = [X[0],X[1] - 1]
 
     neighbors = [a, b, c, d]
 
-    for X_next in neighbors:
+    for next in neighbors:
 
-        if in_bounds(X_next) and not is_occupied(X_next):
+        if in_bounds(next) and not is_occupied(next):
 
-            g = n.g_value + get_step_cost(X, X_next, cost_mode)
+            g = n.g_value + get_step_cost(X, next, cost_mode)
 
-            if g < best_g[X_next[0]][X_next[1]]:
+            if g < best_g[next[0]][next[1]]:
 
-                best_g[X_next[0]][X_next[1]] = g
+                best_g[next[0]][next[1]] = g
 
-                h = get_heuristic(X_next, X_d, cost_mode)
+                h = get_heuristic(next, X_d, cost_mode)
 
-                child = Node(X_next, n, g, h)
+                child = Node(next, n, g, h)
 
                 children.append(child)
 
@@ -446,9 +446,9 @@ def get_neighbors(n, X_d, best_g, cost_mode="distance"):
 # =====================================================================
 def is_goal(n, X_d):
     if n[0] == X_d[0] and n[1] == X_d[1]:
-    	return True
+        return True
     else:
-    	return False
+        return False
     pass  # TODO: replace this with your implementation
 
 
@@ -466,27 +466,8 @@ class Fringe:
         fringe.is_empty()               True if there is no node left
         n = fringe.pop_lowest_f()       remove and return the node with the lowest f
     """
-def __init__(self, X, parent, g_value, h_value):
-    	self.X = X
-    	self.parent = parent
-    	self.g_value = g_value
-    	self.h_value = h_value
-    	self.f_value = self.g_value + self.h_value
-        pass  # TODO: replace this with your implementation (5 lines)
 
-   def general_search():
-  
-        fringe.add_all(children)        # add a list of nodes
-   	fringe = Fringe()               # create an empty fringe
-   	if fringe.is_empty()
-   		return failure
-   	if is_goal(n.X,goal.X):
-		return g_val
-	else:
-		fringe.add(n)                   # add one node
-	return n = fringe.pop_lowest_f()       # remove and return the node with the lowest f
-	
-	
+
     def __init__(self):
         self._heap = []                 # a "heap": always finds the lowest f quickly
         self._count = 0
@@ -532,11 +513,11 @@ def build_path(n):
     P = []
     node = n
     while node.parent is not None:
-    	reverse_P.append(node.X)
-    	node = node.parent
+        reverse_P.append(node.X)
+        node = node.parent
     while reverse_P != []:
-    	P.append(reverse_P.pop())
-    
+        P.append(reverse_P.pop())
+        
     return P
     pass  # TODO: replace this with your implementation
 
@@ -586,31 +567,18 @@ def build_path(n):
 def A_star_planner(X_0, X_d, cost_mode="distance"):
 
     best_g = new_cost_array()
-
     best_g[X_0[0]][X_0[1]] = 0
-
     root = Node(X_0, None, 0, get_heuristic(X_0, X_d, cost_mode))
-
     fringe = Fringe()
-
     fringe.add(root)
-
     while not fringe.is_empty():
-
         n = fringe.pop_lowest_f()
-
         if is_goal(n, X_d):
-
             P = build_path(n)
-
             return P
-
         else:
-
             children = get_neighbors(n, X_d, best_g, cost_mode)
-
             fringe.add_all(children)
-
     return None
     pass  # TODO: replace this with your implementation
 
@@ -662,16 +630,11 @@ def a_star_unit_test_3():
     grid[160, 140:161] = 1
     grid[140:161, 140] = 1
     grid[140:161, 160] = 1
-
     load_grid(grid)
-
     X_0 = [50, 50]
     X_d = [150, 150]
-
     P = A_star_planner(X_0, X_d)
-
     passed = P is None
-
     return passed, P
     pass  # TODO: replace this with your implementation
 
@@ -748,6 +711,14 @@ def time_cost_unit_test_1():
 # the pass condition that matches your answer. Return (passed, P_d, P_t).
 # =====================================================================
 def time_cost_unit_test_2():
+    P_d, P_t = _slow_strip_test(0.9)
+    if P_d is None or P_t is None:
+        return False, P_d, P_t
+    print(f"  test 1: distance path {path_time_s(P_d):.1f} s, time path {path_time_s(P_t):.1f} s")
+    went_around = max(X[1] for X in P_t) < 120
+    passed = went_around and len(P_d) == 151 and len(P_d) == 151
+    return passed, P_d, P_t
+
     pass  # TODO: replace this with your implementation
 
 
@@ -817,67 +788,6 @@ HEADING_LOOKAHEAD_CELLS = 10    # cells, see path_to_trajectory
 # =====================================================================
 
 def path_to_trajectory(P, cost_mode="distance"):
-
-    T = []
-
-    if P is None or len(P) == 0:
-        return T
-
-    for j in range(len(P)):
-
-        position = cell_to_meters(P[j])
-
-        x = position[0]
-        y = position[1]
-
-        if j == 0:
-
-            t = 0.0
-
-        else:
-
-            previous_position = cell_to_meters(P[j - 1])
-
-            x_previous = previous_position[0]
-            y_previous = previous_position[1]
-
-            distance = math.sqrt((x - x_previous)**2 + (y - y_previous)**2)
-
-            if cost_mode == "distance":
-
-                speed = ROBOT_SPEED_M_S
-
-            elif cost_mode == "time":
-
-                speed = traversability(P[j]) * ROBOT_SPEED_M_S
-
-            time_step = distance / speed
-
-            t = T[j - 1][0] + time_step
-
-        m = min(j + HEADING_LOOKAHEAD_CELLS, len(P) - 1)
-
-        if m == j:
-
-            if j == 0:
-                theta = 0.0
-            else:
-                theta = T[j - 1][3]
-
-        else:
-
-            future_position = cell_to_meters(P[m])
-
-            x_future = future_position[0]
-            y_future = future_position[1]
-
-            theta = math.atan2(y_future - y, x_future - x)
-
-        pose = [t, x, y, theta]
-
-        T.append(pose)
-
-    return T
     pass  # TODO: replace this with your implementation
 
 
@@ -914,24 +824,6 @@ def path_to_trajectory(P, cost_mode="distance"):
 # =====================================================================
 
 def trajectory_tracking_controller(T, X, t):
-
-    desired_time = t + TRAJ_LOOKAHEAD_S
-
-    desired_pose = T[-1]
-
-    for p in T:
-
-        if p[0] >= desired_time:
-
-            desired_pose = p
-
-            break
-
-    X_des = desired_pose[1:]
-
-    phi_dot_l, phi_dot_r = point_tracking_controller(X_des, X)
-
-    return phi_dot_l, phi_dot_r
     pass  # TODO: replace this with your implementation
 
 
@@ -981,27 +873,7 @@ def traj_tracker_unit_test_1():
 # same goal planned with "distance" on this map.
 # =====================================================================
 def traj_tracker_unit_test_2():
-
-    load_map("terrain_sim")
-
-    X = [0.0, 0.0, 0.0]
-
-    P = A_star_planner(meters_to_cell(X[0], X[1]), meters_to_cell(1.5, 0.0), "time")
-
-    T = path_to_trajectory(P, "time") if P else None
-
-    if not T:
-        print("  terrain_sim: A_star_planner or path_to_trajectory not written yet")
-        return False, [], []
-
-    reached, visited, t, max_err = simulate_trajectory(T, X)
-
-    hit = any(robot_in_collision(p) for p in visited)
-
-    print(f"  terrain_sim: planned {T[-1][0]:.1f} s, took {t:.1f} s, "
-          f"max tracking error {max_err:.3f} m, collision {hit}")
-
-    return reached and not hit, T, visited    pass  # TODO: replace this with your implementation
+    pass  # TODO: replace this with your implementation
 
 
 # PROVIDED - runs the 2 tests, prints the result and plots the paths.
@@ -1080,75 +952,7 @@ def random_free_cell(rng):
 # It takes about 1 minute: each plan takes up to ~1 s.
 # =====================================================================
 def run_density_analysis(plot=True):
-
-    densities = [0.00, 0.05, 0.10, 0.15, 0.20]
-
-    mean_lengths = []
-    mean_times = []
-
-    rng = np.random.default_rng(0)
-
-    for k in range(len(densities)):
-
-        density = densities[k]
-
-        grid = map_4.random_map(density, k)
-
-        load_grid(grid)
-
-        lengths = []
-        total_time = 0.0
-        failed_plans = 0
-
-        for j in range(100):
-
-            X_0 = random_free_cell(rng)
-            X_d = random_free_cell(rng)
-
-            start_time = time.perf_counter()
-
-            P = A_star_planner(X_0, X_d)
-
-            end_time = time.perf_counter()
-
-            planning_time = end_time - start_time
-
-            total_time = total_time + planning_time
-
-            if P is None:
-
-                failed_plans = failed_plans + 1
-
-            else:
-
-                length = (len(P) - 1) * CELL_SIZE_M
-
-                lengths.append(length)
-
-        if len(lengths) > 0:
-
-            average_length = np.mean(lengths)
-
-        else:
-
-            average_length = float("nan")
-
-        average_time = total_time / 100
-
-        mean_lengths.append(average_length)
-        mean_times.append(average_time)
-
-        print(f"Density: {density:.2f}")
-        print(f"  Mean path length: {average_length:.3f} m")
-        print(f"  Mean planning time: {average_time:.4f} s")
-        print(f"  Failed plans: {failed_plans} out of 100")
-
-    if plot:
-
-        plot_density_results(densities, mean_lengths, mean_times)
-
-    return densities, mean_lengths, mean_times
-pass  # TODO: replace this with your implementation
+    pass  # TODO: replace this with your implementation
 
 
 # =====================================================================
