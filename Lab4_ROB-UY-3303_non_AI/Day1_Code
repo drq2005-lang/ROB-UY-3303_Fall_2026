@@ -319,7 +319,7 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
     if cost_mode == "distance":
         cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
     elif cost_mode == "time":
-        pass
+        cost = d / (traversability(X_to)* ROBOT_SPEED_M_S)
     return cost
     pass  # TODO: replace this with your implementation
 
