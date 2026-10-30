@@ -4,7 +4,7 @@ GUIDED STARTER CODE - complete every function marked STUDENT TODO.
 
     Run the checks and unit tests with:   python lab_4.py
 
-The GUI (gui_4.py) imports this file and uses your planner and trackers on
+The GUI (gui_4.py) imports this file and uses your planner and trackers o
 the robot. map_4.py (same folder) holds the maps.
 
 Write your code only where it says STUDENT TODO. Sections marked
