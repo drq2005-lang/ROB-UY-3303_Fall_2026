@@ -317,7 +317,7 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
     j_to = X_to[1]
     
     if cost_mode == "distance":
-    	cost = CELL_SIZE_M * sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
+    	cost = CELL_SIZE_M * math.sqrt( (i_to - i_from) ** 2 + (j_to - j_from) ** 2 )
     elif cost_mode == "time":
     	pass
     return cost
@@ -352,12 +352,12 @@ def get_step_cost(X_from, X_to, cost_mode="distance"):
 # =====================================================================
 def get_heuristic(X, X_d, cost_mode="distance"):
     i_X = X[0]
-    j_X = X[1]
-    i_X = X_d[0]
-    j_X = X_d[1]
+	j_X = X[1]
+	i_d = X_d[0]
+	j_d = X_d[1]
     
     if cost_mode == "distance":
-    	cost = CELL_SIZE_M * sqrt( (i_X - i_X) ** 2 + (j_X - j_X) ** 2 )
+    	cost = CELL_SIZE_M * math.sqrt( (i_X - i_X) ** 2 + (j_X - j_X) ** 2 )
     elif cost_mode == "time":
     	pass
     return cost
@@ -406,34 +406,34 @@ def get_heuristic(X, X_d, cost_mode="distance"):
 #             [1, 0] and [0, 1] (the cells [-1, 0] and [0, -1] are off the grid).
 # =====================================================================
 def get_neighbors(n, X_d, best_g, cost_mode="distance"):
+
     X = n.X
-    def is_already_added:
-    is_already_added = []
-    g(child) = g(n) + get_step_cost
-    	if best_g > g(child):
-    		is_already_added.append(g(child))
-    	pass
-    def is_valid:
-    	if not in_bounds or not is_occupied or not is_already_added:
-    		return true
-    	else:
-    		return false
-    		
+
     children = []
-    a = [X[0]+1,X[1]]
-    b = [X[0]-1,X[1]]
-    c = [X[0],X[1]+1]
-    d = [X[0],X[1]-1]
-    
-    if is_valid(a):
-    	children.append Node(a, n, get_step_cost(X, a, cost_mode="distance"), get_heuristic(X, a, cost_mode="distance"))
-    if is_valid(b):
-    	children.append Node(b, n, get_step_cost(X, b, cost_mode="distance"), get_heuristic(X, b, cost_mode="distance"))
-    if is_valid(c):
-    	children.append Node(c, n, get_step_cost(X, c, cost_mode="distance"), get_heuristic(X, c, cost_mode="distance"))
-    if is_valid(d):
-    	children.append Node(d, n, get_step_cost(X, d, cost_mode="distance"), get_heuristic(X, d, cost_mode="distance"))
-    
+
+    a = [X[0] + 1, X[1]]
+    b = [X[0] - 1, X[1]]
+    c = [X[0], X[1] + 1]
+    d = [X[0], X[1] - 1]
+
+    neighbors = [a, b, c, d]
+
+    for X_next in neighbors:
+
+        if in_bounds(X_next) and not is_occupied(X_next):
+
+            g = n.g_value + get_step_cost(X, X_next, cost_mode)
+
+            if g < best_g[X_next[0]][X_next[1]]:
+
+                best_g[X_next[0]][X_next[1]] = g
+
+                h = get_heuristic(X_next, X_d, cost_mode)
+
+                child = Node(X_next, n, g, h)
+
+                children.append(child)
+
     return children
     pass  # TODO: replace this with your implementation
 
@@ -528,14 +528,14 @@ def __init__(self, X, parent, g_value, h_value):
 # Example: root [0,0] -> [1,0] -> [1,1] = n.  P must be [[0,0], [1,0], [1,1]]
 # =====================================================================
 def build_path(n):
-    reverse_P = None
-    P = None
+    reverse_P = []
+    P = []
     node = n
     while node.parent is not None:
     	reverse_P.append(node.X)
     	node = node.parent
     while reverse_P != []:
-    	P.append(reverse_P.pop)
+    	P.append(reverse_P.pop())
     
     return P
     pass  # TODO: replace this with your implementation
@@ -585,6 +585,33 @@ def build_path(n):
 # =====================================================================
 def A_star_planner(X_0, X_d, cost_mode="distance"):
 
+    best_g = new_cost_array()
+
+    best_g[X_0[0]][X_0[1]] = 0
+
+    root = Node(X_0, None, 0, get_heuristic(X_0, X_d, cost_mode))
+
+    fringe = Fringe()
+
+    fringe.add(root)
+
+    while not fringe.is_empty():
+
+        n = fringe.pop_lowest_f()
+
+        if is_goal(n, X_d):
+
+            P = build_path(n)
+
+            return P
+
+        else:
+
+            children = get_neighbors(n, X_d, best_g, cost_mode)
+
+            fringe.add_all(children)
+
+    return None
     pass  # TODO: replace this with your implementation
 
 
@@ -628,6 +655,24 @@ def a_star_unit_test_2():
 # Return (passed, P), like the other tests.
 # =====================================================================
 def a_star_unit_test_3():
+
+    grid = empty_grid()
+
+    grid[140, 140:161] = 1
+    grid[160, 140:161] = 1
+    grid[140:161, 140] = 1
+    grid[140:161, 160] = 1
+
+    load_grid(grid)
+
+    X_0 = [50, 50]
+    X_d = [150, 150]
+
+    P = A_star_planner(X_0, X_d)
+
+    passed = P is None
+
+    return passed, P
     pass  # TODO: replace this with your implementation
 
 
@@ -770,7 +815,69 @@ HEADING_LOOKAHEAD_CELLS = 10    # cells, see path_to_trajectory
 #        [0.0833, 0.015, 0.005, 0.0],        0.01 m / 0.12 m/s = 0.0833 s
 #        [0.1667, 0.025, 0.005, 0.0]]
 # =====================================================================
+
 def path_to_trajectory(P, cost_mode="distance"):
+
+    T = []
+
+    if P is None or len(P) == 0:
+        return T
+
+    for j in range(len(P)):
+
+        position = cell_to_meters(P[j])
+
+        x = position[0]
+        y = position[1]
+
+        if j == 0:
+
+            t = 0.0
+
+        else:
+
+            previous_position = cell_to_meters(P[j - 1])
+
+            x_previous = previous_position[0]
+            y_previous = previous_position[1]
+
+            distance = math.sqrt((x - x_previous)**2 + (y - y_previous)**2)
+
+            if cost_mode == "distance":
+
+                speed = ROBOT_SPEED_M_S
+
+            elif cost_mode == "time":
+
+                speed = traversability(P[j]) * ROBOT_SPEED_M_S
+
+            time_step = distance / speed
+
+            t = T[j - 1][0] + time_step
+
+        m = min(j + HEADING_LOOKAHEAD_CELLS, len(P) - 1)
+
+        if m == j:
+
+            if j == 0:
+                theta = 0.0
+            else:
+                theta = T[j - 1][3]
+
+        else:
+
+            future_position = cell_to_meters(P[m])
+
+            x_future = future_position[0]
+            y_future = future_position[1]
+
+            theta = math.atan2(y_future - y, x_future - x)
+
+        pose = [t, x, y, theta]
+
+        T.append(pose)
+
+    return T
     pass  # TODO: replace this with your implementation
 
 
@@ -805,7 +912,26 @@ def path_to_trajectory(P, cost_mode="distance"):
 #   - Compare with your path_tracking_controller of Lab 3: the same idea,
 #     with a time Delta t instead of a distance Delta.
 # =====================================================================
+
 def trajectory_tracking_controller(T, X, t):
+
+    desired_time = t + TRAJ_LOOKAHEAD_S
+
+    desired_pose = T[-1]
+
+    for p in T:
+
+        if p[0] >= desired_time:
+
+            desired_pose = p
+
+            break
+
+    X_des = desired_pose[1:]
+
+    phi_dot_l, phi_dot_r = point_tracking_controller(X_des, X)
+
+    return phi_dot_l, phi_dot_r
     pass  # TODO: replace this with your implementation
 
 
@@ -855,7 +981,27 @@ def traj_tracker_unit_test_1():
 # same goal planned with "distance" on this map.
 # =====================================================================
 def traj_tracker_unit_test_2():
-    pass  # TODO: replace this with your implementation
+
+    load_map("terrain_sim")
+
+    X = [0.0, 0.0, 0.0]
+
+    P = A_star_planner(meters_to_cell(X[0], X[1]), meters_to_cell(1.5, 0.0), "time")
+
+    T = path_to_trajectory(P, "time") if P else None
+
+    if not T:
+        print("  terrain_sim: A_star_planner or path_to_trajectory not written yet")
+        return False, [], []
+
+    reached, visited, t, max_err = simulate_trajectory(T, X)
+
+    hit = any(robot_in_collision(p) for p in visited)
+
+    print(f"  terrain_sim: planned {T[-1][0]:.1f} s, took {t:.1f} s, "
+          f"max tracking error {max_err:.3f} m, collision {hit}")
+
+    return reached and not hit, T, visited    pass  # TODO: replace this with your implementation
 
 
 # PROVIDED - runs the 2 tests, prints the result and plots the paths.
@@ -934,7 +1080,75 @@ def random_free_cell(rng):
 # It takes about 1 minute: each plan takes up to ~1 s.
 # =====================================================================
 def run_density_analysis(plot=True):
-    pass  # TODO: replace this with your implementation
+
+    densities = [0.00, 0.05, 0.10, 0.15, 0.20]
+
+    mean_lengths = []
+    mean_times = []
+
+    rng = np.random.default_rng(0)
+
+    for k in range(len(densities)):
+
+        density = densities[k]
+
+        grid = map_4.random_map(density, k)
+
+        load_grid(grid)
+
+        lengths = []
+        total_time = 0.0
+        failed_plans = 0
+
+        for j in range(100):
+
+            X_0 = random_free_cell(rng)
+            X_d = random_free_cell(rng)
+
+            start_time = time.perf_counter()
+
+            P = A_star_planner(X_0, X_d)
+
+            end_time = time.perf_counter()
+
+            planning_time = end_time - start_time
+
+            total_time = total_time + planning_time
+
+            if P is None:
+
+                failed_plans = failed_plans + 1
+
+            else:
+
+                length = (len(P) - 1) * CELL_SIZE_M
+
+                lengths.append(length)
+
+        if len(lengths) > 0:
+
+            average_length = np.mean(lengths)
+
+        else:
+
+            average_length = float("nan")
+
+        average_time = total_time / 100
+
+        mean_lengths.append(average_length)
+        mean_times.append(average_time)
+
+        print(f"Density: {density:.2f}")
+        print(f"  Mean path length: {average_length:.3f} m")
+        print(f"  Mean planning time: {average_time:.4f} s")
+        print(f"  Failed plans: {failed_plans} out of 100")
+
+    if plot:
+
+        plot_density_results(densities, mean_lengths, mean_times)
+
+    return densities, mean_lengths, mean_times
+pass  # TODO: replace this with your implementation
 
 
 # =====================================================================
